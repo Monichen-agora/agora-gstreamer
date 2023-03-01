@@ -33,6 +33,12 @@ EXTERNC void agoraio_disconnect(AgoraIoContext_t** ctx);
 								int is_key_frame,
 							    long timestamp);
 
+ EXTERNC int  agoraio_send_video_text(AgoraIoContext_t* ctx,  
+                                const unsigned char* buffer,  
+							    unsigned long len, 
+								int is_key_frame,
+							    long timestamp);
+
  EXTERNC void  agoraio_set_paused(AgoraIoContext_t* ctx, int flag);
 								
 

@@ -832,10 +832,13 @@ gst_agorasink_chain (GstPad * pad, GstObject * parent, GstBuffer * in_buffer)
             //this function does the actual conversion
             uint16_t current_data_annexb_size=
              convert_avc_to_annexb(data, data_size, filter->data_annexb,filter->sps, filter->pps);
-
+#if 0
             agoraio_send_video(filter->agora_ctx, filter->data_annexb, current_data_annexb_size,is_key_frame, in_buffer_pts);
+#else
+            agoraio_send_video_text(filter->agora_ctx, filter->data_annexb, current_data_annexb_size,is_key_frame, in_buffer_pts);
+#endif	    
              
-            //write_to_file(filter->data_annexb, current_data_annexb_size);
+            //rite_to_file(filter->data_annexb, current_data_annexb_size);
          }
     }
     else

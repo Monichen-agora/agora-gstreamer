@@ -551,7 +551,11 @@ static GstFlowReturn gst_agoraio_chain (GstPad * pad, GstObject * parent, GstBuf
     }
     else if(agoraIO->audio==FALSE){
         unsigned long ts=(unsigned long)(in_buffer_pts/1000000); //in ms
+#if 0
         agoraio_send_video(agoraIO->agora_ctx, data, data_size,is_key_frame,ts);
+#else
+        agoraio_send_video_text(agoraIO->agora_ctx, data, data_size,is_key_frame,ts);
+#endif
     }
 
      free(data); 

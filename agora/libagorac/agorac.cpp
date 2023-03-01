@@ -133,6 +133,25 @@ int  agoraio_send_video(AgoraIoContext_t* ctx,
         return ctx->agoraIo->sendVideo( buffer, len, is_key_frame, timestamp);
 
 }
+#define TEXT_SIZE 50
+int  agoraio_send_video_text(AgoraIoContext_t* ctx,  
+                                const unsigned char* buffer,  
+							           unsigned long len, 
+								        int is_key_frame,
+							           long timestamp){
+
+        unsigned char *buffer_text;
+	char text[TEXT_SIZE] = "Hello World!!!";
+
+	//if (is_key_frame) 
+          //return ctx->agoraIo->sendVideo( buffer, len, is_key_frame, timestamp);
+	buffer_text = (unsigned char*) malloc(len+TEXT_SIZE);
+	memcpy(buffer_text, buffer, len);
+	memcpy(buffer_text+len, text, TEXT_SIZE);
+
+	return ctx->agoraIo->sendVideo( buffer_text, len+TEXT_SIZE, is_key_frame, timestamp);
+
+}
 
 void agoraio_disconnect(AgoraIoContext_t** ctx){
 
