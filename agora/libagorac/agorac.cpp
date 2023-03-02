@@ -21,6 +21,7 @@
 //#include "userobserver.h"
 #include "observer/connectionobserver.h"
 #include "helpers/context.h"
+//#include <gst/gst.h>
 
 #include "helpers/utilities.h"
 #include "agoratype.h"
@@ -133,7 +134,7 @@ int  agoraio_send_video(AgoraIoContext_t* ctx,
         return ctx->agoraIo->sendVideo( buffer, len, is_key_frame, timestamp);
 
 }
-#define TEXT_SIZE 50
+#define TEXT_SIZE 100
 int  agoraio_send_video_text(AgoraIoContext_t* ctx,  
                                 const unsigned char* buffer,  
 							           unsigned long len, 
@@ -141,15 +142,21 @@ int  agoraio_send_video_text(AgoraIoContext_t* ctx,
 							           long timestamp){
 
         unsigned char *buffer_text;
-	char text[TEXT_SIZE] = "Hello World!!!";
+	std::string custom_data = "Hello Agora!!!";
+	std::string ending_text = "AgoraWrc";
+	unsigned long new_len = len;
+        unsigned char data_len;
 
-	//if (is_key_frame) 
-          //return ctx->agoraIo->sendVideo( buffer, len, is_key_frame, timestamp);
+	//Custom data format: videoFrameData+customData+customDataLength+‘AgoraWrc’
 	buffer_text = (unsigned char*) malloc(len+TEXT_SIZE);
 	memcpy(buffer_text, buffer, len);
-	memcpy(buffer_text+len, text, TEXT_SIZE);
+	data_len = custom_data.size();
+	memcpy(buffer_text+len, custom_data.c_str(), data_len);
+	memcpy(buffer_text+len+data_len, &data_len, 1);
+	memcpy(buffer_text+len+data_len + 1, ending_text.c_str(), ending_text.size()); //data_len is now only one byte
+	new_len = len + data_len + 1 + ending_text.size();
 
-	return ctx->agoraIo->sendVideo( buffer_text, len+TEXT_SIZE, is_key_frame, timestamp);
+	return ctx->agoraIo->sendVideo( buffer_text, new_len, is_key_frame, timestamp);
 
 }
 

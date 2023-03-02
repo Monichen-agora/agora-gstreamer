@@ -27,15 +27,15 @@
 EXTERNC void agoraio_disconnect(AgoraIoContext_t** ctx);
 
 
- EXTERNC int  agoraio_send_video(AgoraIoContext_t* ctx,  
-                                const unsigned char* buffer,  
-							    unsigned long len, 
+ EXTERNC int  agoraio_send_video(AgoraIoContext_t* ctx,
+                                const unsigned char* buffer,
+							    unsigned long len,
 								int is_key_frame,
 							    long timestamp);
 
- EXTERNC int  agoraio_send_video_text(AgoraIoContext_t* ctx,  
-                                const unsigned char* buffer,  
-							    unsigned long len, 
+ EXTERNC int  agoraio_send_video_text(AgoraIoContext_t* ctx,
+                                const unsigned char* buffer,
+							    unsigned long len,
 								int is_key_frame,
 							    long timestamp);
 
