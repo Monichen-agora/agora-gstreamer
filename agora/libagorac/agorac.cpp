@@ -31,7 +31,7 @@
 
 #include "agoraio.h"
 
-
+using namespace std;
 
 //do not use it before calling agora_init
 void agora_log(agora_context_t* ctx, const char* message){
@@ -134,7 +134,8 @@ int  agoraio_send_video(AgoraIoContext_t* ctx,
         return ctx->agoraIo->sendVideo( buffer, len, is_key_frame, timestamp);
 
 }
-#define TEXT_SIZE 100
+
+#define MAX_DATA_SIZE   65536
 int  agoraio_send_video_text(AgoraIoContext_t* ctx,  
                                 const unsigned char* buffer,  
 							           unsigned long len, 
@@ -145,17 +146,35 @@ int  agoraio_send_video_text(AgoraIoContext_t* ctx,
 	std::string custom_data = "Hello Agora!!!";
 	std::string ending_text = "AgoraWrc";
 	unsigned long new_len = len;
-        unsigned char data_len;
+        uint32_t data_len;
+	FILE *fp;
+        char *custom_data_array;
+        custom_data_array = (char*)malloc(MAX_DATA_SIZE);
+
+        fp = fopen("./datafile", "rb");
+	if (fp != NULL) {
+	  fseek(fp, 0L, SEEK_END);
+          data_len = ftell(fp);
+	  data_len = data_len > MAX_DATA_SIZE? MAX_DATA_SIZE : data_len;
+	  fseek(fp, 0L, SEEK_SET);
+	  fread(custom_data_array, sizeof(char), data_len, fp); //read in a custom data from a file
+	  fclose(fp);
+	} else {
+          cout << "no datafile";
+	  exit(-1);
+	}
 
 	//Custom data format: videoFrameData+customData+customDataLength+‘AgoraWrc’
-	buffer_text = (unsigned char*) malloc(len+TEXT_SIZE);
+	buffer_text = (unsigned char*) malloc(len + MAX_DATA_SIZE);
 	memcpy(buffer_text, buffer, len);
-	data_len = custom_data.size();
-	memcpy(buffer_text+len, custom_data.c_str(), data_len);
-	memcpy(buffer_text+len+data_len, &data_len, 1);
-	memcpy(buffer_text+len+data_len + 1, ending_text.c_str(), ending_text.size()); //data_len is now only one byte
-	new_len = len + data_len + 1 + ending_text.size();
+	//data_len = custom_data.size();
+	//memcpy(buffer_text+len, custom_data.c_str(), data_len);
+	memcpy(buffer_text+len, custom_data_array, data_len);
+	memcpy(buffer_text+len+data_len, &data_len, sizeof(data_len));
+	memcpy(buffer_text+len+data_len + sizeof(data_len), ending_text.c_str(), ending_text.size()); //data_len is now only one byte
+	new_len = len + data_len + sizeof(data_len) + ending_text.size();
 
+	free(custom_data_array);
 	return ctx->agoraIo->sendVideo( buffer_text, new_len, is_key_frame, timestamp);
 
 }
