@@ -146,10 +146,11 @@ int  agoraio_send_video_text(AgoraIoContext_t* ctx,
 	std::string custom_data = "Hello Agora!!!";
 	std::string ending_text = "AgoraWrc";
 	unsigned long new_len = len;
-        uint32_t data_len;
+        uint32_t data_len, data_len_le = 0;
 	FILE *fp;
         char *custom_data_array;
         custom_data_array = (char*)malloc(MAX_DATA_SIZE);
+	int ret;
 
         fp = fopen("./datafile", "rb");
 	if (fp != NULL) {
@@ -170,12 +171,17 @@ int  agoraio_send_video_text(AgoraIoContext_t* ctx,
 	//data_len = custom_data.size();
 	//memcpy(buffer_text+len, custom_data.c_str(), data_len);
 	memcpy(buffer_text+len, custom_data_array, data_len);
-	memcpy(buffer_text+len+data_len, &data_len, sizeof(data_len));
+
+	//convert data_len to little endian
+	data_len_le = (data_len&0xff)<<24 | (data_len&0xff00)<< 8 | (data_len&0xff0000)>> 8 | (data_len&0xff0000) >> 24;
+	memcpy(buffer_text+len+data_len, &data_len_le, sizeof(data_len));
 	memcpy(buffer_text+len+data_len + sizeof(data_len), ending_text.c_str(), ending_text.size()); //data_len is now only one byte
 	new_len = len + data_len + sizeof(data_len) + ending_text.size();
 
 	free(custom_data_array);
-	return ctx->agoraIo->sendVideo( buffer_text, new_len, is_key_frame, timestamp);
+	ret = ctx->agoraIo->sendVideo( buffer_text, new_len, is_key_frame, timestamp);
+	free(buffer_text);
+	return ret;
 
 }
 
