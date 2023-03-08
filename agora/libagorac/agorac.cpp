@@ -136,21 +136,10 @@ int  agoraio_send_video(AgoraIoContext_t* ctx,
 }
 
 #define MAX_DATA_SIZE   65536
-int  agoraio_send_video_text(AgoraIoContext_t* ctx,  
-                                const unsigned char* buffer,  
-							           unsigned long len, 
-								        int is_key_frame,
-							           long timestamp){
-
-        unsigned char *buffer_text;
-	std::string custom_data = "Hello Agora!!!";
-	std::string ending_text = "AgoraWrc";
-	unsigned long new_len = len;
-        uint32_t data_len, data_len_le = 0;
+static int agora_get_custom_data(char * custom_data_array)
+{
 	FILE *fp;
-        char *custom_data_array;
-        custom_data_array = (char*)malloc(MAX_DATA_SIZE);
-	int ret;
+	int data_len;
 
         fp = fopen("./datafile", "rb");
 	if (fp != NULL) {
@@ -160,22 +149,40 @@ int  agoraio_send_video_text(AgoraIoContext_t* ctx,
 	  fseek(fp, 0L, SEEK_SET);
 	  fread(custom_data_array, sizeof(char), data_len, fp); //read in a custom data from a file
 	  fclose(fp);
+	  return data_len;
 	} else {
           cout << "no datafile";
 	  exit(-1);
 	}
 
+}
+
+int  agoraio_send_video_text(AgoraIoContext_t* ctx,
+                                const unsigned char* buffer,
+							           unsigned long len,
+								        int is_key_frame,
+							           long timestamp){
+
+        unsigned char *buffer_text;
+	std::string ending_text = "AgoraWrc";
+	unsigned long new_len;
+        uint32_t data_len, data_len_le = 0;
+        char *custom_data_array;
+        custom_data_array = (char*)malloc(MAX_DATA_SIZE);
+	int ret;
+
+	data_len = agora_get_custom_data(custom_data_array);
+
 	//Custom data format: videoFrameData+customData+customDataLength+‘AgoraWrc’
 	buffer_text = (unsigned char*) malloc(len + MAX_DATA_SIZE);
 	memcpy(buffer_text, buffer, len);
-	//data_len = custom_data.size();
-	//memcpy(buffer_text+len, custom_data.c_str(), data_len);
 	memcpy(buffer_text+len, custom_data_array, data_len);
 
 	//convert data_len to little endian
 	data_len_le = (data_len&0xff)<<24 | (data_len&0xff00)<< 8 | (data_len&0xff0000)>> 8 | (data_len&0xff0000) >> 24;
 	memcpy(buffer_text+len+data_len, &data_len_le, sizeof(data_len));
-	memcpy(buffer_text+len+data_len + sizeof(data_len), ending_text.c_str(), ending_text.size()); //data_len is now only one byte
+	memcpy(buffer_text+len+data_len + sizeof(data_len), ending_text.c_str(), ending_text.size()); //data_len is now only one int
+
 	new_len = len + data_len + sizeof(data_len) + ending_text.size();
 
 	free(custom_data_array);
